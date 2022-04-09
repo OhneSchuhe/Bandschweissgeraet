@@ -66,7 +66,7 @@ void setupIO()
   pinMode(Pin_WELD, OUTPUT); // set the outputs
   pinMode(Pin_FASTEN, OUTPUT);
   // init the MOSFETS to off
-  digitalWrite(Pin_WELD, MOSFET_OFF); // set all pumps to off
+  digitalWrite(Pin_WELD, MOSFET_OFF); // set all mosfets to off
   digitalWrite(Pin_FASTEN, MOSFET_OFF);
 }
 

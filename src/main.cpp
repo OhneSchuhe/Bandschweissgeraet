@@ -22,16 +22,16 @@ enum MosfetModes // enum for MOSFET control
 
 // ############## Config for periodic functions
 uint64_t lastStatus = 0;          // counter for status message
-uint32_t statusInterval = 300000; // interval for the status messages in ms
+uint32_t statusInterval = 3000; // interval for the status messages in ms
 uint64_t lastFastenAct = 0;         // counter for fasten actuation
 uint32_t FastenInterval = 3000;     // duration of one fasten actuation in ms
 
 // ############## I/O Pins for LEDs and Relays
-int Pin_POTI = 0;
-int Pin_REED = 0;
-int Pin_BTN = 0;
-int Pin_WELD = 0;  // MOSFET welding
-int Pin_FASTEN = 0;  // MOSFET fasten
+int Pin_POTI = A0;
+// int Pin_REED = 0;
+// int Pin_BTN = 0;
+// int Pin_WELD = 0;  // MOSFET welding
+// int Pin_FASTEN = 0;  // MOSFET fasten
 
 
 void statusPrinter(int force)
@@ -61,13 +61,13 @@ void statusPrinter(int force)
 void setupIO()
 {
   pinMode(Pin_POTI, INPUT); // set the inputs 
-  pinMode(Pin_REED, INPUT);
-  pinMode(Pin_BTN, INPUT);
-  pinMode(Pin_WELD, OUTPUT); // set the outputs
-  pinMode(Pin_FASTEN, OUTPUT);
+  // pinMode(Pin_REED, INPUT);
+  // pinMode(Pin_BTN, INPUT);
+  // pinMode(Pin_WELD, OUTPUT); // set the outputs
+  // pinMode(Pin_FASTEN, OUTPUT);
   // init the MOSFETS to off
-  digitalWrite(Pin_WELD, MOSFET_OFF); // set all mosfets to off
-  digitalWrite(Pin_FASTEN, MOSFET_OFF);
+  // digitalWrite(Pin_WELD, MOSFET_OFF); // set all mosfets to off
+  // digitalWrite(Pin_FASTEN, MOSFET_OFF);
 }
 
 void setup() {
@@ -94,4 +94,5 @@ void StateMachine()
 void loop() {
   statusPrinter(0);
   StateMachine();
+  MegaStatus = analogRead(Pin_POTI);  // debug
 }

@@ -21,7 +21,7 @@ enum MosfetModes // enum for MOSFET control
 
 // ############## Config for periodic functions
 uint64_t lastStatus = 0;          // counter for status message
-uint16_t statusInterval = 3000; // interval for the status messages in ms
+uint16_t statusInterval = 1000; // interval for the status messages in ms
 uint64_t lastFastenAct = 0;         // counter for fasten actuation
 uint32_t fastenInterval = 500;     // duration of one fasten actuation in ms
 uint64_t lastWeldAct = 0;         // counter for fasten actuation
@@ -37,12 +37,17 @@ uint64_t lastPotiRead = 0; // counter for the potentiometer readings in ms
 //TODO: Maybe use different debounce time for poti?
 uint32_t debounceInterval = 50; // interval for debouncing inputs in ms  
 
+//SENSORS
+//POTI
 uint16_t potiValue = 0;
-
+uint16_t lastPotiValue = 0;
+//REED SWITCH
 bool reedValue = false;  // internal value of the reed switch
+bool lastReedValue = false; // last internal value of the reed switch
+//BUTTON
 bool btnValue = false;  // internal value of the external button
-
-
+bool lastBtnValue = false;  // last internal value of the external button
+//SENSORS
 // ############## I/O Pins for LEDs and Relays
 int Pin_POTI = A0;
 int Pin_REED = 9;
@@ -102,52 +107,58 @@ void StateMachine()
     switch (OPMODE)
     {
     case MODE_INIT:
+      MegaStatus = "Initialising Module";
       /* check if all inputs are off */
-      if (!btnValue and !reedValue)
+      if (btnValue and reedValue)
       {
         OPMODE = MODE_STANDBY;
       }
       break;
     case MODE_STANDBY:
+      MegaStatus = "Standby, waiting for input.";
       // wait for trigger
-      if (btnValue)
+      if (!btnValue)
       {
         lastFastenAct = millis();
         OPMODE = MODE_FASTENSTART;
       }
-      else if (reedValue)
+      else if (!reedValue)
       {
         lastWeldAct = millis();
         OPMODE = MODE_WELDSTART;
       }
       break;
     case MODE_WELDSTART:
+      MegaStatus = "Welding band...";
       digitalWrite(Pin_WELD, MOSFET_ON);
-      if ((millis() - lastWeldAct) > weldInterval)
+      if (((millis() - lastWeldAct) > weldInterval) or reedValue)
       {
         digitalWrite(Pin_WELD, MOSFET_OFF);
         OPMODE = MODE_WELDEND;
       }
       break;
     case MODE_WELDEND:
-      if (!reedValue)
+      MegaStatus = "Ended welding, waiting for reed release...";
+      if (reedValue)
       {
         OPMODE = MODE_STANDBY;
       }
       break;
     case MODE_FASTENSTART:
+      MegaStatus = "Fastening band...";
       // enable MOSFET for motor
       digitalWrite(Pin_FASTEN, MOSFET_ON);
       // if we are over the interval, disable MOSFET for motor
-      if ((millis() - lastFastenAct) > fastenInterval)
+      if (((millis() - lastFastenAct) > fastenInterval) or btnValue)
       {
         digitalWrite(Pin_FASTEN, MOSFET_OFF);
         OPMODE = MODE_FASTENEND;
       }
       break;
     case MODE_FASTENEND:
+      MegaStatus = "Ended fastening, waiting for button release...";
       // wait untill button is released, return to standby
-      if (!btnValue)
+      if (btnValue)
       {
         OPMODE = MODE_STANDBY;
       }
@@ -158,19 +169,24 @@ void StateMachine()
   }
 void SensorRead()
 {
+  
+  bool tmpBtnVal = digitalRead(Pin_BTN);
+  bool tmpReedVal = digitalRead(Pin_REED);
+  uint16_t tmpPotiVal = analogRead(Pin_POTI);
+  MegaStatus = String(tmpReedVal) + "|" + String(reedValue)+ "|" + String(lastReedValue);  // debug
   // debounce everything
   // check if the read value is different from last btn state
-  if (digitalRead(Pin_BTN) != btnValue)  
+  if (tmpBtnVal != lastBtnValue)  
   {
        lastBtnRead = millis();
   }
   // check if the read value is different from last reed state
-  if (digitalRead(Pin_REED) != reedValue)  
+  if (tmpReedVal != lastReedValue)  
   {
        lastReedRead = millis();
   }
   // check if the read value is different from last poti state
-  if (analogRead(Pin_POTI) != potiValue)  
+  if (tmpPotiVal != lastPotiValue)  
   {
        lastPotiRead = millis();
   }
@@ -178,30 +194,36 @@ void SensorRead()
   if ((millis() - lastBtnRead) > debounceInterval)
   {
     // if btn still has a different value than last measurement
-    if (digitalRead(Pin_BTN) != btnValue)  
+    if (tmpBtnVal != btnValue)  
     {
-        btnValue = digitalRead(Pin_BTN);  // assign read value to internal value
+        btnValue = tmpBtnVal;  // assign read value to internal value
+        
     }
   }
   //check if we crossed the debounce interval for reed
   if ((millis() - lastReedRead) > debounceInterval)
   {
     // if btn still has a different value than last measurement
-    if (digitalRead(Pin_REED) != reedValue)  
+    if (tmpReedVal != reedValue)  
     {
-        reedValue = digitalRead(Pin_REED);  // assign read value to internal value
+        reedValue = tmpReedVal;  // assign read value to internal value
+        
     }
   }
   //check if we crossed the debounce interval for poti
   if ((millis() - lastPotiRead) > debounceInterval)
   {
+ 
     // if btn still has a different value than last measurement
-    if (digitalRead(Pin_POTI) != potiValue)  
+    if (tmpPotiVal != potiValue)  
     {
-        potiValue = analogRead(Pin_POTI);  // assign read value to internal value
+        potiValue = tmpPotiVal;  // assign read value to internal value
+        
     }
   }
-  
+  lastBtnValue = tmpBtnVal;
+  lastReedValue = tmpReedVal;
+  lastPotiValue = tmpPotiVal;
 }
 void setWeldInterval()
 {

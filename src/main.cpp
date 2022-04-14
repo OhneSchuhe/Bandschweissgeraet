@@ -51,12 +51,12 @@ uint32_t fastenInterval = 500;     // duration of one fasten actuation in ms
 uint64_t lastWeldInit = 0;         // counter for weld init
 uint64_t lastWeldAct = 0;         // counter for weld actuation
 //LED
-uint16_t ledToggleInterval = 250;  // interval for LED toggle
+uint16_t ledToggleInterval = 150;  // interval for LED toggle
 uint64_t lastLEDAct = 0;         // counter for LED  actuation
 
 //LED
 //WELDING
-uint16_t weldDelay = 1000;  // delay to start welding for letting the user get the band clamped
+uint16_t weldDelay = 1500;  // delay to start welding for letting the user get the band clamped
 uint16_t weldIntervalMin = 500;     // duration of one fasten actuation in ms
 uint16_t weldIntervalMax = 5000;     // duration of one fasten actuation in ms
 uint16_t weldIntervalInc = 0;  // interval increment for setting via poti
@@ -83,8 +83,8 @@ bool lastBtnValue = false;  // last internal value of the external button
 //SENSORS
 // ############## I/O Pins for LEDs and Relays
 int Pin_POTI = A3;
-int Pin_LEDR = 15;
-int Pin_LEDG = 14;
+int Pin_LEDR = 14;
+int Pin_LEDG = 15;
 int Pin_REED = 2;
 int Pin_BTN = 3;
 int Pin_WELD = 4;  // MOSFET welding
@@ -176,8 +176,8 @@ void StateMachine()
       break;
     case MODE_WELDINIT:
       MegaStatus = "Waiting for weld delay...";
-      LEDRMODE = LEDR_OFF;
-      LEDGMODE = LEDG_FLASH0;
+      LEDRMODE = LEDR_FLASH0;
+      LEDGMODE = LEDG_ON;
       if (((millis() - lastWeldInit) > weldDelay))
       {
         OPMODE = MODE_WELDSTART;

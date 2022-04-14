@@ -87,8 +87,8 @@ int Pin_LEDR = 14;
 int Pin_LEDG = 15;
 int Pin_REED = 2;
 int Pin_BTN = 3;
-int Pin_WELD = 4;  // MOSFET welding
-int Pin_FASTEN = 5;  // MOSFET fasten
+int Pin_WELD = 5;  // MOSFET welding
+int Pin_FASTEN = 4;  // MOSFET fasten
 
 
 void statusPrinter(int force)

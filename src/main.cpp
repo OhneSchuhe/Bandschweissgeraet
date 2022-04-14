@@ -50,6 +50,11 @@ uint64_t lastFastenAct = 0;         // counter for fasten actuation
 uint32_t fastenInterval = 500;     // duration of one fasten actuation in ms
 uint64_t lastWeldInit = 0;         // counter for weld init
 uint64_t lastWeldAct = 0;         // counter for weld actuation
+//LED
+uint16_t ledToggleInterval = 250;  // interval for LED toggle
+uint64_t lastLEDRAct = 0;         // counter for LED red actuation
+uint64_t lastLEDGAct = 0;         // counter for LED green actuation
+//LED
 //WELDING
 uint16_t weldDelay = 1000;  // delay to start welding for letting the user get the band clamped
 uint16_t weldIntervalMin = 500;     // duration of one fasten actuation in ms
@@ -57,12 +62,14 @@ uint16_t weldIntervalMax = 5000;     // duration of one fasten actuation in ms
 uint16_t weldIntervalInc = 0;  // interval increment for setting via poti
 uint16_t weldInterval = 0;  // calculcated weld interval
 //WELDING
+//INPUT timings
 uint64_t lastBtnRead = 0; // counter for the button readings in ms
 uint64_t lastReedRead = 0; // counter for the reed contact readings in ms
 uint64_t lastPotiRead = 0; // counter for the potentiometer readings in ms
-//TODO: Maybe use different debounce time for poti?
+
 uint32_t debounceInterval = 50; // interval for debouncing inputs in ms  
 uint32_t potiInterval = 150; // interval for refreshing the potentiometer in ms  
+//INPUT timings
 //SENSORS
 //POTI
 uint16_t potiValue = 0;
@@ -205,6 +212,94 @@ void StateMachine()
       break;
     }
   }
+void LEDRState()
+{
+  switch (LEDRMODE)
+  {
+  case LEDR_OFF:
+    digitalWrite(Pin_LEDR, LED_OFF);
+    break;
+  case LEDR_ON:
+    digitalWrite(Pin_LEDR, LED_ON);
+    break;
+  case LEDR_FLASH0:  // flash with phase 0
+    if ((millis() - lastLEDRAct) < ledToggleInterval)
+    {
+      digitalWrite(Pin_LEDR, LED_ON);  
+
+    }
+    else if ((millis() - lastLEDRAct) < (2 * ledToggleInterval))
+    {
+      digitalWrite(Pin_LEDR, LED_OFF);  
+    }
+    else
+    {
+      lastLEDRAct = millis();
+    }
+    break;
+    case LEDR_FLASH5:  // flash with phase 180
+    if ((millis() - lastLEDRAct) < ledToggleInterval)
+    {
+      digitalWrite(Pin_LEDR, LED_OFF);  
+
+    }
+    else if ((millis() - lastLEDRAct) < (2 * ledToggleInterval))
+    {
+      digitalWrite(Pin_LEDR, LED_ON);  
+    }
+    else
+    {
+      lastLEDRAct = millis();
+    }
+    break;
+  default:
+    break;
+  }
+}
+void LEDGState()
+{
+  switch (LEDGMODE)
+  {
+  case LEDG_OFF:
+    digitalWrite(Pin_LEDG, LED_OFF);
+    break;
+  case LEDG_ON:
+    digitalWrite(Pin_LEDG, LED_ON);
+    break;
+  case LEDG_FLASH0:  // flash with phase 0
+    if ((millis() - lastLEDGAct) < ledToggleInterval)
+    {
+      digitalWrite(Pin_LEDG, LED_ON);  
+
+    }
+    else if ((millis() - lastLEDGAct) < (2 * ledToggleInterval))
+    {
+      digitalWrite(Pin_LEDG, LED_OFF);  
+    }
+    else
+    {
+      lastLEDGAct = millis();
+    }
+    break;
+    case LEDG_FLASH5:  // flash with phase 180
+    if ((millis() - lastLEDGAct) < ledToggleInterval)
+    {
+      digitalWrite(Pin_LEDG, LED_OFF);  
+
+    }
+    else if ((millis() - lastLEDGAct) < (2 * ledToggleInterval))
+    {
+      digitalWrite(Pin_LEDG, LED_ON);  
+    }
+    else
+    {
+      lastLEDGAct = millis();
+    }
+    break;
+  default:
+    break;
+  }
+}
 void SensorRead()
 {
   

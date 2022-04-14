@@ -52,8 +52,8 @@ uint64_t lastWeldInit = 0;         // counter for weld init
 uint64_t lastWeldAct = 0;         // counter for weld actuation
 //LED
 uint16_t ledToggleInterval = 250;  // interval for LED toggle
-uint64_t lastLEDRAct = 0;         // counter for LED red actuation
-uint64_t lastLEDGAct = 0;         // counter for LED green actuation
+uint64_t lastLEDAct = 0;         // counter for LED  actuation
+
 //LED
 //WELDING
 uint16_t weldDelay = 1000;  // delay to start welding for letting the user get the band clamped
@@ -120,6 +120,7 @@ void statusPrinter(int force)
 void setupIO()
 {
   pinMode(Pin_POTI, INPUT); // set the inputs 
+
   pinMode(Pin_REED, INPUT_PULLUP);
   pinMode(Pin_BTN, INPUT_PULLUP);
   pinMode(Pin_WELD, OUTPUT); // set the outputs
@@ -227,33 +228,33 @@ void LEDRStateMachine()
     digitalWrite(Pin_LEDR, LED_ON);
     break;
   case LEDR_FLASH0:  // flash with phase 0
-    if ((millis() - lastLEDRAct) < ledToggleInterval)
+    if ((millis() - lastLEDAct) < ledToggleInterval)
     {
       digitalWrite(Pin_LEDR, LED_ON);  
 
     }
-    else if ((millis() - lastLEDRAct) < (2 * ledToggleInterval))
+    else if ((millis() - lastLEDAct) < (2 * ledToggleInterval))
     {
       digitalWrite(Pin_LEDR, LED_OFF);  
     }
     else
     {
-      lastLEDRAct = millis();
+      lastLEDAct = millis();
     }
     break;
     case LEDR_FLASH5:  // flash with phase 180
-    if ((millis() - lastLEDRAct) < ledToggleInterval)
+    if ((millis() - lastLEDAct) < ledToggleInterval)
     {
       digitalWrite(Pin_LEDR, LED_OFF);  
 
     }
-    else if ((millis() - lastLEDRAct) < (2 * ledToggleInterval))
+    else if ((millis() - lastLEDAct) < (2 * ledToggleInterval))
     {
       digitalWrite(Pin_LEDR, LED_ON);  
     }
     else
     {
-      lastLEDRAct = millis();
+      lastLEDAct = millis();
     }
     break;
   default:
@@ -271,33 +272,33 @@ void LEDGStateMachine()
     digitalWrite(Pin_LEDG, LED_ON);
     break;
   case LEDG_FLASH0:  // flash with phase 0
-    if ((millis() - lastLEDGAct) < ledToggleInterval)
+    if ((millis() - lastLEDAct) < ledToggleInterval)
     {
       digitalWrite(Pin_LEDG, LED_ON);  
 
     }
-    else if ((millis() - lastLEDGAct) < (2 * ledToggleInterval))
+    else if ((millis() - lastLEDAct) < (2 * ledToggleInterval))
     {
       digitalWrite(Pin_LEDG, LED_OFF);  
     }
     else
     {
-      lastLEDGAct = millis();
+      lastLEDAct = millis();
     }
     break;
     case LEDG_FLASH5:  // flash with phase 180
-    if ((millis() - lastLEDGAct) < ledToggleInterval)
+    if ((millis() - lastLEDAct) < ledToggleInterval)
     {
       digitalWrite(Pin_LEDG, LED_OFF);  
 
     }
-    else if ((millis() - lastLEDGAct) < (2 * ledToggleInterval))
+    else if ((millis() - lastLEDAct) < (2 * ledToggleInterval))
     {
       digitalWrite(Pin_LEDG, LED_ON);  
     }
     else
     {
-      lastLEDGAct = millis();
+      lastLEDAct = millis();
     }
     break;
   default:

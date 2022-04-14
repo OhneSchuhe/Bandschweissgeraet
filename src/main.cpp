@@ -6,6 +6,7 @@ enum OpModes
 {
   MODE_INIT, // 0
   MODE_STANDBY,
+  MODE_WELDINIT,
   MODE_WELDSTART,
   MODE_WELDEND,
   MODE_FASTENSTART,
@@ -13,10 +14,33 @@ enum OpModes
 };
 int OPMODE = 0;  // Switch variable
 
+enum LEDRModes
+{
+  LEDR_OFF, // 0
+  LEDR_ON,
+  LEDR_FLASH0,
+  LEDR_FLASH5  // 3
+};
+int LEDRMODE = 0;  // Switch variable
+enum LEDGModes
+{
+  LEDG_OFF, // 0
+  LEDG_ON,
+  LEDG_FLASH0,
+  LEDG_FLASH5  // 3
+};
+int LEDGMODE = 0;  // Switch variable
+
+
 enum MosfetModes // enum for MOSFET control
 {
   MOSFET_OFF, // 0
   MOSFET_ON
+};
+enum LEDModes // enum for LED control
+{
+  LED_OFF, // 0
+  LED_ON
 };
 
 // ############## Config for periodic functions
@@ -24,8 +48,10 @@ uint64_t lastStatus = 0;          // counter for status message
 uint16_t statusInterval = 1000; // interval for the status messages in ms
 uint64_t lastFastenAct = 0;         // counter for fasten actuation
 uint32_t fastenInterval = 500;     // duration of one fasten actuation in ms
-uint64_t lastWeldAct = 0;         // counter for fasten actuation
+uint64_t lastWeldInit = 0;         // counter for weld init
+uint64_t lastWeldAct = 0;         // counter for weld actuation
 //WELDING
+uint16_t weldDelay = 1000;  // delay to start welding for letting the user get the band clamped
 uint16_t weldIntervalMin = 500;     // duration of one fasten actuation in ms
 uint16_t weldIntervalMax = 5000;     // duration of one fasten actuation in ms
 uint16_t weldIntervalInc = 0;  // interval increment for setting via poti
@@ -36,7 +62,7 @@ uint64_t lastReedRead = 0; // counter for the reed contact readings in ms
 uint64_t lastPotiRead = 0; // counter for the potentiometer readings in ms
 //TODO: Maybe use different debounce time for poti?
 uint32_t debounceInterval = 50; // interval for debouncing inputs in ms  
-
+uint32_t potiInterval = 150; // interval for refreshing the potentiometer in ms  
 //SENSORS
 //POTI
 uint16_t potiValue = 0;
@@ -49,11 +75,13 @@ bool btnValue = false;  // internal value of the external button
 bool lastBtnValue = false;  // last internal value of the external button
 //SENSORS
 // ############## I/O Pins for LEDs and Relays
-int Pin_POTI = A0;
-int Pin_REED = 9;
-int Pin_BTN = 8;
-int Pin_WELD = 7;  // MOSFET welding
-int Pin_FASTEN = 6;  // MOSFET fasten
+int Pin_POTI = A3;
+int Pin_LEDR = 15;
+int Pin_LEDG = 14;
+int Pin_REED = 2;
+int Pin_BTN = 3;
+int Pin_WELD = 4;  // MOSFET welding
+int Pin_FASTEN = 5;  // MOSFET fasten
 
 
 void statusPrinter(int force)
@@ -67,6 +95,8 @@ void statusPrinter(int force)
     Serial.print(MegaStatus);
     Serial.print("\",\"Uptime\":\"");
     Serial.print(now);
+    //Serial.print("\",\"Weld interval\":\"");
+    //Serial.print(weldInterval);
     Serial.println("\"}>");
   }
   else if (now < 5 or force == 2)
@@ -124,8 +154,16 @@ void StateMachine()
       }
       else if (!reedValue)
       {
-        lastWeldAct = millis();
+        lastWeldInit = millis();
+        OPMODE = MODE_WELDINIT;
+      }
+      break;
+    case MODE_WELDINIT:
+      MegaStatus = "Waiting for weld delay...";
+      if (((millis() - lastWeldInit) > weldDelay))
+      {
         OPMODE = MODE_WELDSTART;
+        lastWeldAct = millis();
       }
       break;
     case MODE_WELDSTART:
@@ -185,11 +223,6 @@ void SensorRead()
   {
        lastReedRead = millis();
   }
-  // check if the read value is different from last poti state
-  if (tmpPotiVal != lastPotiValue)  
-  {
-       lastPotiRead = millis();
-  }
   //check if we crossed the debounce interval for btn
   if ((millis() - lastBtnRead) > debounceInterval)
   {
@@ -211,19 +244,18 @@ void SensorRead()
     }
   }
   //check if we crossed the debounce interval for poti
-  if ((millis() - lastPotiRead) > debounceInterval)
+  if ((millis() - lastPotiRead) > potiInterval)
   {
  
     // if btn still has a different value than last measurement
     if (tmpPotiVal != potiValue)  
     {
         potiValue = tmpPotiVal;  // assign read value to internal value
-        
+        lastPotiRead = millis();
     }
   }
   lastBtnValue = tmpBtnVal;
   lastReedValue = tmpReedVal;
-  lastPotiValue = tmpPotiVal;
 }
 void setWeldInterval()
 {

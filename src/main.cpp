@@ -150,6 +150,8 @@ void StateMachine()
     {
     case MODE_INIT:
       MegaStatus = "Initialising Module";
+      LEDRMODE = LEDR_ON;
+      LEDGMODE = LEDG_ON;
       /* check if all inputs are off */
       if (btnValue and reedValue)
       {
@@ -158,6 +160,8 @@ void StateMachine()
       break;
     case MODE_STANDBY:
       MegaStatus = "Standby, waiting for input.";
+      LEDRMODE = LEDR_OFF;
+      LEDGMODE = LEDG_ON;
       // wait for trigger
       if (!btnValue)
       {
@@ -172,6 +176,8 @@ void StateMachine()
       break;
     case MODE_WELDINIT:
       MegaStatus = "Waiting for weld delay...";
+      LEDRMODE = LEDR_OFF;
+      LEDGMODE = LEDG_FLASH0;
       if (((millis() - lastWeldInit) > weldDelay))
       {
         OPMODE = MODE_WELDSTART;
@@ -180,6 +186,8 @@ void StateMachine()
       break;
     case MODE_WELDSTART:
       MegaStatus = "Welding band...";
+      LEDRMODE = LEDR_FLASH0;
+      LEDGMODE = LEDG_FLASH0;
       digitalWrite(Pin_WELD, MOSFET_ON);
       if (((millis() - lastWeldAct) > weldInterval) or reedValue)
       {
@@ -189,6 +197,8 @@ void StateMachine()
       break;
     case MODE_WELDEND:
       MegaStatus = "Ended welding, waiting for reed release...";
+      LEDRMODE = LEDR_OFF;
+      LEDGMODE = LEDG_FLASH0;
       if (reedValue)
       {
         OPMODE = MODE_STANDBY;
@@ -196,6 +206,8 @@ void StateMachine()
       break;
     case MODE_FASTENSTART:
       MegaStatus = "Fastening band...";
+      LEDRMODE = LEDR_FLASH0;
+      LEDGMODE = LEDG_FLASH0;
       // enable MOSFET for motor
       digitalWrite(Pin_FASTEN, MOSFET_ON);
       // if we are over the interval, disable MOSFET for motor
@@ -207,6 +219,8 @@ void StateMachine()
       break;
     case MODE_FASTENEND:
       MegaStatus = "Ended fastening, waiting for button release...";
+      LEDRMODE = LEDR_OFF;
+      LEDGMODE = LEDG_FLASH0;
       // wait untill button is released, return to standby
       if (btnValue)
       {

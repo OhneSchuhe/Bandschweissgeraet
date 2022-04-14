@@ -123,10 +123,14 @@ void setupIO()
   pinMode(Pin_REED, INPUT_PULLUP);
   pinMode(Pin_BTN, INPUT_PULLUP);
   pinMode(Pin_WELD, OUTPUT); // set the outputs
-  pinMode(Pin_FASTEN, OUTPUT);
+  pinMode(Pin_FASTEN, OUTPUT);  
+  pinMode(Pin_LEDG, OUTPUT);
+  pinMode(Pin_LEDR, OUTPUT);
   // init the MOSFETS to off
   digitalWrite(Pin_WELD, MOSFET_OFF); // set all mosfets to off
   digitalWrite(Pin_FASTEN, MOSFET_OFF);
+  digitalWrite(Pin_LEDG, LED_OFF); // set all LEDs to off
+  digitalWrite(Pin_LEDR, LED_OFF);
 }
 
 void setup() {
@@ -212,7 +216,7 @@ void StateMachine()
       break;
     }
   }
-void LEDRState()
+void LEDRStateMachine()
 {
   switch (LEDRMODE)
   {
@@ -256,7 +260,7 @@ void LEDRState()
     break;
   }
 }
-void LEDGState()
+void LEDGStateMachine()
 {
   switch (LEDGMODE)
   {
@@ -372,4 +376,6 @@ void loop() {
   SensorRead();
   setWeldInterval();
   StateMachine();
+  LEDRStateMachine();
+  LEDGStateMachine();
 }
